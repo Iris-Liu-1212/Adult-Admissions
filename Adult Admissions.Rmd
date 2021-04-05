@@ -1,0 +1,56 @@
+---
+title: "Adult admissions Plot"
+author: "Iris Liu"
+date: "7/1/2020"
+output: html_document
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(ggplot2)
+library(tidyverse)
+library(lubridate)
+library(assertr)
+library(zoo)
+library(scales)
+library(glue)
+Fiscal_Year_Attendance_3 <- read.csv("Fiscal_Year_Attendance_3.csv")
+```
+
+```{r, echo = FALSE}
+names(Fiscal_Year_Attendance_3)[names(Fiscal_Year_Attendance_3) == "Walk-In Admission Category"] <- "Walk_In_Admission_Category"
+```
+```{r, echo = FALSE}
+Fiscal_Year_Attendance<-
+  subset(Fiscal_Year_Attendance_3, item ==1)
+```
+```{r, echo = FALSE}
+Fiscal_Year_Attendance<- Fiscal_Year_Attendance %>% 
+  select(1:5)
+Fiscal_Year_Attendance$Date <- as.yearmon(paste(Fiscal_Year_Attendance$Year, Fiscal_Year_Attendance$Month), "%Y %m")
+Fiscal_Year_Attendance <- transform(Fiscal_Year_Attendance, Date2 = as.Date(Date,frac = 1))
+```
+
+```{r, echo = FALSE}
+Annotate <- glue("Adult Admission reached {Fiscal_Year_Attendance %>% filter(Month == '7', Year == '2016') %>% pull(Value)} in July of 2016")
+p <- ggplot(data = Fiscal_Year_Attendance, aes(x = Date2, y = Value)) +
+  geom_line(color = "darkseagreen4") +  ylim(0, 4000) +
+  labs(title = "Adult Admissions over Time", subtitle = "2016 - 2020", x = "Date", y = "Adult Admissions") + 
+  scale_x_date(date_labels = "%Y", breaks='1 year') +
+  theme(axis.text = element_text( 
+    color="darkslategray", size=8),
+    title = element_text( color= "darkgreen", size=10, face=2),
+    axis.title = element_text( color= "darkgreen", size=10, face=2),
+    plot.background = element_rect(fill = "white"), 
+    panel.background = element_rect(fill = "white", colour="darkolivegreen")) + 
+  annotate(geom="text", x=as.Date("2016-07-30"), 
+           y=3800, 
+           label= Annotate, size = 3) + 
+  annotate(geom="point", x=as.Date("2016-07-30"), y=3497, size=7, shape=21, fill="transparent") 
+```
+
+I created a tidy dataset from the Fiscal Year Attendance data over the past 15 years(2006-2020). Then I created a new variable to combine month and year, filtered Adult Admissions from the dataset and created this plot to show how it changed over time. In July of 2016, it reached its highest value at 3497.
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(plotly)
+ggplotly(p)
+```
